@@ -13,6 +13,7 @@ from middlewares.db import DbSessionMiddleware
 load_dotenv()
 TOKEN =os.getenv('BOT_TOKEN')
 dp = Dispatcher()
+
 async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
