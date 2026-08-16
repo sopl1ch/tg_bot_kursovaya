@@ -11,13 +11,13 @@ from handlers.booking import router
 from middlewares.db import DbSessionMiddleware
 
 load_dotenv()
-TOKEN =os.getenv('BOT_TOKEN')
+TOKEN=os.getenv('BOT_TOKEN')
 dp = Dispatcher()
 
 async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-# Run the bot
+
 async def main() -> None:
     await create_tables()
     logging.basicConfig(level=logging.INFO)

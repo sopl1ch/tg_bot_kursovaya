@@ -3,8 +3,11 @@ from datetime import time, date, datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import User, Record
+from db.models import User, Record, Doctor
 
+async def get_doctors(session: AsyncSession) -> list[Doctor]:
+    result = await session.execute(select(Doctor))
+    return list(result.scalars().all())
 
 async def get_or_create_user(session: AsyncSession,tg_id:int,user_name:str):
     result=await session.execute(select(User).where(User.tg_id==tg_id))
@@ -19,7 +22,7 @@ async def get_or_create_user(session: AsyncSession,tg_id:int,user_name:str):
 def generate_time_slots():
     slots=[]
     for i in range(9,21):
-        slots.append(time(i,0))
+        slots.append(time(i,1))
         slots.append(time(i,30))
     return slots
 
@@ -54,9 +57,27 @@ async def create_record(session: AsyncSession,
     return record
 
 
-def get_Doctors():
-    return None
 
 
-def get_Doctor_by_id():
-    return None
+
+
+
+async def seed_doctors(session: AsyncSession) -> None:
+    result = await session.execute(select(Doctor))
+    existing = result.scalars().all()
+    if existing:
+        return
+
+    doctors_data = [
+        {"Илья": "Невролог"},
+        {"Ярослав": "Оториноларинголог"},
+        {"Андей": "Гинеколог"},
+        {"Владимир": "Терапевт"},
+        {"Ваня": "Дерматолог"},
+    ]
+
+    for data in doctors_data:
+        doctor = Doctor(name=data["name"])
+        session.add(doctor)
+
+    await session.commit()

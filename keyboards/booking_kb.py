@@ -3,7 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import time
 
 
-def Doctors_keyboard(Doctors):
+def doctors_keyboard(Doctors):
     return InlineKeyboardMarkup(
         inline_keyboard=[
            [ InlineKeyboardButton(text=Doctor.name, callback_data=f"Doctor:{Doctor.id}")]

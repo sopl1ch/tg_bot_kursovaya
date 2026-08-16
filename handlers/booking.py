@@ -1,27 +1,26 @@
+from db.requests import get_free_times
+from keyboards.booking_kb import doctors_keyboard, times_keyboard
+from states.booking_state import BookingState
 from datetime import date, datetime, time
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery,Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.requests import get_Doctors, get_free_times, get_or_create_user, get_Doctor_by_id, create_record
-from keyboards.booking_kb import Doctors_keyboard, times_keyboard
-from keyboards.menu import main_menu
-from states.booking_state import BookingState
 
 router=Router()
-@router.callback_query(F.data=="start_booking")
-async def start_booking(callback:CallbackQuery,state:FSMContext,session:AsyncSession):
-    Doctors=await get_Doctors()
-    if not Doctors:
-        await callback.message.answer("Нет доступных предметов")
-        await callback.answer()
-        return
-    await state.clear()
-    await state.set_state(BookingState.choosing_Doctor)
-    await callback.message.answer("Выберите врача:",reply_markup=Doctors_keyboard(Doctors))
-    await callback.answer()
+@router.message(F.text == "Записаться")
+async def start_booking_from_menu(
+    message: Message,
+    session: AsyncSession,
+) -> None:
+    doctors =  ()
+
+    await message.answer(
+        "Выберите врача:",
+        reply_markup=doctors_keyboard(doctors),
+    )
 @router.callback_query(BookingState.choosing_Doctor,F.data.startswith("Doctor:"))
 async def choose_Doctor(callback:CallbackQuery,state:FSMContext):
     Doctor_id=int(callback.data.split(":")[1])
@@ -34,10 +33,8 @@ async def choose_Doctor(callback:CallbackQuery,state:FSMContext):
 async def ignore_calendar(callback:CallbackQuery,state:FSMContext):
     await callback.answer()
 
-
 def get_calendar(year, month):
     pass
-
 
 @router.callback_query(BookingState.choosing_date,F.data.startswith("cal_prev."))
 async def prev_calendar(callback:CallbackQuery):
@@ -66,7 +63,6 @@ async def choose_date(callback:CallbackQuery,state:FSMContext,session:AsyncSessi
     _, year, month,day = callback.data.split(".")
     selected_date=date(int(year),int(month),int(day))
 
-
     if selected_date<date.today():
         await callback.message.answer("Нельзя выбрать прошедшую дату")
         return
@@ -94,26 +90,3 @@ async def choose_time(callback:CallbackQuery,state:FSMContext,session:AsyncSessi
     data=await state.get_data()
     Doctor_id=data["Doctor_id"]
     selected_data=date.fromisoformat(data["selected_date"])
-    user=await get_or_create_user(
-        session=session,
-        tg_id=callback.from_user.id,
-        user_name=callback.from_user.username or callback.from_user.full_name
-    )
-    Doctor=await get_Doctor_by_id()
-    await create_record(
-        session=session,
-        user_id=user.id,
-        Doctor_id=Doctor_id,
-        selected_date=selected_data,
-        selected_time=selected_time
-    )
-    await callback.answer()
-    await callback.message.answer(
-        f"Вы записаны на приём к врачу:\n"
-        f"Предмет: {Doctor.name}\n"
-        f"Дата: {selected_data.strftime('%d.%m.%Y')}\n"
-        f"Время: {selected_time.strftime('%H:%M')}\n",reply_markup=main_menu()
-    )
-    await callback.answer()
-
-
