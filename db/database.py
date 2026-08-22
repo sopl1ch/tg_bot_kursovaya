@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
-DATABASE_URL="postgresql+asyncpg://postgres:Admin@localhost:5432/Doctor's_appointment_db"
+DATABASE_URL="postgresql+asyncpg://postgres:Admin@localhost:5432/Doctor_appointment1_bot"
 class Base(DeclarativeBase):
     pass
 
